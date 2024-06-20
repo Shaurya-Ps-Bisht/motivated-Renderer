@@ -71,7 +71,7 @@ void VulkanEngine::cleanup()
 
 void VulkanEngine::draw()
 {
-    VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000));
+    VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true, 1000000000)); //make sure gpu side commands are finished
     VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
 
     //req img from swpchain
@@ -79,11 +79,8 @@ void VulkanEngine::draw()
     VK_CHECK(vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
 
     VkCommandBuffer cmd = get_current_frame()._mainCommandBuffer;
-
     VK_CHECK(vkResetCommandBuffer(cmd, 0));
-
     VkCommandBufferBeginInfo cmdBeginInfo = vkinit::command_buffer_begin_info(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-
     VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
 }
 
