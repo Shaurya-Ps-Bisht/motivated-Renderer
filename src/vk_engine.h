@@ -6,9 +6,34 @@
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
-class VulkanEngine {
-public:
+struct DeletionQueue {
+	std::deque<std::function<void()>> deletors; //a dequeue of functions returning void, no params
 
+	void push_function(std::function<void()>&& function) { //rvalue reference
+		deletors.push_back(function);
+	}
+
+	void flush() {
+		for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
+			(*it)(); //derefernce the iterator to obtain the function and using () to exec it 
+		}
+		deletors.clear();
+	}
+};
+
+struct FrameData {
+	VkCommandPool _commandPool;
+	VkCommandBuffer _mainCommandBuffer;
+
+	VkSemaphore _swapchainSemaphore, _renderSemaphore;
+	VkFence _renderFence;
+
+	DeletionQueue _deletionQueue;
+};
+
+class VulkanEngine {
+
+public:
 	FrameData _frames[FRAME_OVERLAP];
 
 	FrameData& get_current_frame() { return _frames[_frameNumber % FRAME_OVERLAP]; }; //alternate between frame 1 and 2, double buffer
@@ -48,47 +73,15 @@ private:
 	void init_swapchain();
 	void init_commands();
 	void init_sync_structures();
+	void draw_background(VkCommandBuffer cmd);
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
 
 	DeletionQueue _mainDeletionQueue;
+	VkExtent2D _drawExtent;
+
 	VmaAllocator _allocator;
-
 	AllocatedImage _drawImage;
-	VkExtent3D _drawExtent;
 };
 
-struct DeletionQueue {
-	std::deque<std::function<void()>> deletors;
-
-	void push_function(std::function<void()>&& function) {
-		deletors.push_back(function);
-	}
-
-	void flush() {
-		for (auto it = deletors.rbegin(); it != deletors.rend(); it++) {
-			(*it)();
-		}
-		deletors.clear();
-	}
-};
-
-struct AllocatedImage
-{
-	VkImage image;
-	VkImageView imageView;
-	VmaAllocation allocation;
-	VkExtent3D imageExtent;
-	VkFormat imageFormat;
-};
-
-struct FrameData {
-	VkCommandPool _commandPool;
-	VkCommandBuffer _mainCommandBuffer;
-
-	VkSemaphore _swapchainSemaphore, _renderSemaphore;
-	VkFence _renderFence;
-
-	DeletionQueue _deletionQueue;
-};
