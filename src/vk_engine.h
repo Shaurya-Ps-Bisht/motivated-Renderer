@@ -3,6 +3,7 @@
 #include <vk_types.h>
 #include <vk_initializers.h>
 #include "VkBootstrap.h"
+#include <vk_descriptors.h>
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
@@ -35,7 +36,6 @@ class VulkanEngine {
 
 public:
 	FrameData _frames[FRAME_OVERLAP];
-
 	FrameData& get_current_frame() { return _frames[_frameNumber % FRAME_OVERLAP]; }; //alternate between frame 1 and 2, double buffer
 
 
@@ -63,6 +63,14 @@ public:
 	std::vector<VkImageView> _swapchainImageViews;
 	VkExtent2D _swapchainExtent;
 
+	DescriptorAllocator globalDescriptorAllocator;
+
+	VkDescriptorSet _drawImageDescriptors;
+	VkDescriptorSetLayout _drawImageDescriptorLayout;
+
+	VkPipeline _gradientPipeline;
+	VkPipelineLayout _gradientPipelineLayout;
+
 	void init();
 	void cleanup();
 	void draw();
@@ -77,6 +85,10 @@ private:
 
 	void create_swapchain(uint32_t width, uint32_t height);
 	void destroy_swapchain();
+
+	void init_descriptors();
+	void init_pipelines();
+	void init_background_pipelines();
 
 	DeletionQueue _mainDeletionQueue;
 	VkExtent2D _drawExtent;

@@ -39,3 +39,4 @@ struct AllocatedImage
     VkExtent3D imageExtent;
     VkFormat imageFormat;
 };
+
