@@ -11,3 +11,14 @@ On linux, generate a single config or multi-config make. On Arch, I use Ninja to
 cmake -S . -B build -G "Ninja Multi-Config"
 cmake --build build --config Debug
  ```
+Build shaders separately to get the spv files, I use:
+
+```C-make
+cmake --build build --config Debug --target Shaders
+ ```
+## Tudu
+
+- [ ] Clang format to match nvim and VS 
+- [x] Venus
+- [x] Earth (Orbit/Moon)
+- [x] Mars
