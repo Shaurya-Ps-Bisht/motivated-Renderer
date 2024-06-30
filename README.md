@@ -18,7 +18,7 @@ cmake --build build --config Debug --target Shaders
  ```
 ## Tudu
 
-- [ ] Clang format to match nvim and VS 
+- [ ] Downgrade clang (17.0.3) in arch to match visual studio, or the other way around
 - [x] Venus
 - [x] Earth (Orbit/Moon)
 - [x] Mars
