@@ -125,12 +125,17 @@ class VulkanEngine
     void init_pipelines();
     void init_background_pipelines();
     void init_imgui();
+    void init_triangle_pipeline();
+    void draw_geometry(VkCommandBuffer cmd);
 
     DeletionQueue _mainDeletionQueue;
     VkExtent2D _drawExtent;
 
     VmaAllocator _allocator;
     AllocatedImage _drawImage;
+
+    VkPipelineLayout _trianglePipelineLayout;
+    VkPipeline _trianglePipeline;
 
     std::vector<ComputeEffect> backgroundEffects;
     int currentBackgroundEffect{0};
