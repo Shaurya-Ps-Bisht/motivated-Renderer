@@ -19,6 +19,7 @@ cmake --build build --config Debug --target Shaders
 ## Tudu
 
 - [ ] Downgrade clang (17.0.3) in arch to match visual studio, or the other way around
+- [ ] Correct the destruction function to get rid of Validation Layer Errors.
 - [x] Venus
 - [x] Earth (Orbit/Moon)
 - [x] Mars
