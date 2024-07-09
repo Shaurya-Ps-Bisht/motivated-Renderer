@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "VkBootstrap.h"
+#include "vk_loader.h"
 #include <cstdint>
 #include <functional>
 #include <vk_descriptors.h>
@@ -9,7 +10,6 @@
 #include <vulkan/vulkan_core.h>
 
 constexpr unsigned int FRAME_OVERLAP = 2;
-
 
 struct ComputePushConstants
 {
@@ -143,6 +143,7 @@ class VulkanEngine
 
     VmaAllocator _allocator;
     AllocatedImage _drawImage;
+    AllocatedImage _depthImage;
 
     VkPipelineLayout _trianglePipelineLayout;
     VkPipelineLayout _meshPipelineLayout;
@@ -151,5 +152,6 @@ class VulkanEngine
     VkPipeline _trianglePipeline;
 
     std::vector<ComputeEffect> backgroundEffects;
+    std::vector<std::shared_ptr<MeshAsset>> testMeshes;
     int currentBackgroundEffect{0};
 };
