@@ -1,5 +1,6 @@
 ﻿//> includes
 #include "vk_engine.h"
+#include "SDL_video.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
@@ -44,7 +45,7 @@ void VulkanEngine::init()
     // We initialize SDL and create a window with it.
     SDL_Init(SDL_INIT_VIDEO);
 
-    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
 
     _window = SDL_CreateWindow("Vulkan Engine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, _windowExtent.width,
                                _windowExtent.height, window_flags);
@@ -96,19 +97,27 @@ void VulkanEngine::cleanup()
 
 void VulkanEngine::draw()
 {
+
     VK_CHECK(vkWaitForFences(_device, 1, &get_current_frame()._renderFence, true,
                              1000000000)); // make sure gpu side commands are finished
 
     get_current_frame()._deletionQueue.flush();
 
-    VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
-
     // req img from swpchain
     uint32_t swapchainImageIndex;
-    VK_CHECK(vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore, nullptr,
-                                   &swapchainImageIndex));
+    VkResult e = vkAcquireNextImageKHR(_device, _swapchain, 1000000000, get_current_frame()._swapchainSemaphore,
+                                       nullptr, &swapchainImageIndex);
+    if (e == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        resize_request = true;
+        return;
+    }
+
+    _drawExtent.height = std::min(_swapchainExtent.height, _drawImage.imageExtent.height) * renderScale;
+    _drawExtent.width = std::min(_swapchainExtent.width, _drawImage.imageExtent.width) * renderScale;
 
     VkCommandBuffer cmd = get_current_frame()._mainCommandBuffer;
+    VK_CHECK(vkResetFences(_device, 1, &get_current_frame()._renderFence));
     VK_CHECK(vkResetCommandBuffer(cmd, 0));
 
     VkCommandBufferBeginInfo cmdBeginInfo =
@@ -162,7 +171,12 @@ void VulkanEngine::draw()
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pImageIndices = &swapchainImageIndex;
 
-    VK_CHECK(vkQueuePresentKHR(_graphicsQueue, &presentInfo));
+    VkResult presentResult = vkQueuePresentKHR(_graphicsQueue, &presentInfo);
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        resize_request = true;
+        return;
+    }
 
     _frameNumber++;
 }
@@ -205,12 +219,18 @@ void VulkanEngine::run()
             continue;
         }
 
+        if (resize_request)
+        {
+            resize_swapchain();
+        }
+
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
 
         if (ImGui::Begin("background"))
         {
+            ImGui::SliderFloat("Render Scale", &renderScale, 0.3f, 1.f);
             ComputeEffect &selected = backgroundEffects[currentBackgroundEffect];
             ImGui::Text("Selected effect: ", selected.name);
 
@@ -924,4 +944,19 @@ void VulkanEngine::init_default_data()
         destroy_buffer(rectangle.indexBuffer);
         destroy_buffer(rectangle.vertexBuffer);
     });
+}
+void VulkanEngine::resize_swapchain()
+{
+    vkDeviceWaitIdle(_device);
+
+    destroy_swapchain();
+
+    int w, h;
+    SDL_GetWindowSize(_window, &w, &h);
+    _windowExtent.width = w;
+    _windowExtent.height = h;
+
+    create_swapchain(_windowExtent.width, _windowExtent.height);
+
+    resize_request = false;
 }

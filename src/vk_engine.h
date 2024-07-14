@@ -124,6 +124,7 @@ class VulkanEngine
 
     void create_swapchain(uint32_t width, uint32_t height);
     void destroy_swapchain();
+    void resize_swapchain();
 
     void init_descriptors();
     void init_pipelines();
@@ -140,6 +141,7 @@ class VulkanEngine
 
     DeletionQueue _mainDeletionQueue;
     VkExtent2D _drawExtent;
+    float renderScale = 1.f;
 
     VmaAllocator _allocator;
     AllocatedImage _drawImage;
@@ -154,4 +156,6 @@ class VulkanEngine
     std::vector<ComputeEffect> backgroundEffects;
     std::vector<std::shared_ptr<MeshAsset>> testMeshes;
     int currentBackgroundEffect{0};
+
+    bool resize_request;
 };
