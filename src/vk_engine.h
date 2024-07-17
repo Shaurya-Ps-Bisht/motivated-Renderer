@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "VkBootstrap.h"
+#include "imgui.h"
 #include "vk_loader.h"
 #include <cstdint>
 #include <functional>
@@ -57,6 +58,17 @@ struct FrameData
     VkFence _renderFence;
 
     DeletionQueue _deletionQueue;
+    DescriptorAllocatorGrowable _frameDescriptors;
+};
+
+struct GPUSceneData
+{
+    glm::mat4 view;
+    glm::mat4 proj;
+    glm::mat4 viewproj;
+    glm::mat4 ambientCollor;
+    glm::mat4 sunlightDirection;
+    glm::mat4 sunlightColor;
 };
 
 class VulkanEngine
@@ -158,4 +170,7 @@ class VulkanEngine
     int currentBackgroundEffect{0};
 
     bool resize_request;
+
+    GPUSceneData sceneData;
+    VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 };
