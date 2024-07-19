@@ -785,7 +785,11 @@ void VulkanEngine::draw_geometry(VkCommandBuffer cmd)
         DescriptorWriter writer;
         writer.write_image(0, _errorCheckerBoardImage.imageView, _defaultSamplerNearest,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+        writer.update_set(_device, imageSet);
     }
+
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, _meshPipelineLayout, 0, 1, &imageSet, 0, nullptr);
+
 
     glm::mat4 view = glm::translate(glm::vec3{0, 0, -5});
     glm::mat4 projection =
@@ -794,17 +798,7 @@ void VulkanEngine::draw_geometry(VkCommandBuffer cmd)
     projection[1][1] *= -1;
 
     GPUDrawPushConstants push_constants;
-    push_constants.worldMatrix = glm::mat4{1.f};
-    push_constants.vertexBuffer = rectangle.vertexBufferAddress;
-
     push_constants.worldMatrix = projection * view;
-
-    vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants),
-                       &push_constants);
-    vkCmdBindIndexBuffer(cmd, rectangle.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-
-    vkCmdDrawIndexed(cmd, 6, 1, 0, 0, 0);
-
     push_constants.vertexBuffer = testMeshes[2]->meshBuffers.vertexBufferAddress;
 
     vkCmdPushConstants(cmd, _meshPipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(GPUDrawPushConstants),
@@ -1090,6 +1084,9 @@ AllocatedImage VulkanEngine::create_image(void *data, VkExtent3D size, VkFormat 
 
         vkCmdCopyBufferToImage(cmd, uploadBuffer.buffer, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                                &copyRegion);
+        vkutil::transition_image(cmd, new_image.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     });
 
     destroy_buffer(uploadBuffer);
