@@ -12,6 +12,39 @@
 
 constexpr unsigned int FRAME_OVERLAP = 2;
 
+struct GLTFMetallic_roughness
+{
+    MaterialPipeline opaquePipeline;
+    MaterialPipeline transparentPipeline;
+
+    VkDescriptorSetLayout materialLayout;
+
+    struct MaterialConstants
+    {
+        glm::vec4 colorFactors;
+        glm::vec4 metal_rough_factors;
+        glm::vec4 extra[14];
+    };
+
+    struct MaterialResources
+    {
+        AllocatedImage colorImage;
+        VkSampler colorSampler;
+        AllocatedImage metalRoughImage;
+        VkSampler metalRoughSampler;
+        VkBuffer dataBuffer;
+        uint32_t dataBufferOffset;
+    };
+
+    DescriptorWriter writer;
+
+    void build_pipelines(VulkanEngine *engine);
+    void clear_resources(VkDevice _device);
+
+    MaterialInstance write_material(VkDevice device, MaterialPass pass, const MaterialResources &resources,
+                                    DescriptorAllocatorGrowable &descriptorAllocator);
+};
+
 struct ComputePushConstants
 {
     glm::vec4 data1;
@@ -117,6 +150,10 @@ class VulkanEngine
     VkCommandBuffer _immCommandBuffer;
     VkCommandPool _immCommandPool;
 
+    VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
+    AllocatedImage _drawImage;
+    AllocatedImage _depthImage;
+
     void init();
     void cleanup();
     void draw();
@@ -161,8 +198,6 @@ class VulkanEngine
     float renderScale = 1.f;
 
     VmaAllocator _allocator;
-    AllocatedImage _drawImage;
-    AllocatedImage _depthImage;
 
     VkPipelineLayout _trianglePipelineLayout;
     VkPipelineLayout _meshPipelineLayout;
@@ -177,7 +212,6 @@ class VulkanEngine
     bool resize_request;
 
     GPUSceneData sceneData;
-    VkDescriptorSetLayout _gpuSceneDataDescriptorLayout;
 
     AllocatedImage _whiteImage;
     AllocatedImage _blackImage;
@@ -188,4 +222,7 @@ class VulkanEngine
     VkSampler _defaultSamplerNearest;
 
     VkDescriptorSetLayout _singleImageDescriptorLayout;
+
+    MaterialInstance defaultData;
+    GLTFMetallic_roughness metalRoughMaterial;
 };
