@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <memory>
 #include <ranges>
-#include <unistd.h>
+//#include <unistd.h>
 #include <vk_initializers.h>
 #include <vk_pipelines.h>
 #include <vk_types.h>
@@ -1208,6 +1208,10 @@ void GLTFMetallic_roughness::build_pipelines(VulkanEngine *engine)
     mesh_layout_info.pushConstantRangeCount = 1;
 
     VkPipelineLayout newLayout;
+    VK_CHECK(vkCreatePipelineLayout(engine->_device, &mesh_layout_info, nullptr, &newLayout));
+
+    opaquePipeline.layout = newLayout;
+
     transparentPipeline.layout = newLayout;
 
     PipelineBuilder pipelineBuilder;
@@ -1280,6 +1284,7 @@ void MeshNode::Draw(const glm::mat4 &topMatrix, DrawContext &ctx)
         def.indexCount = s.count;
         def.firstIndex = s.startIndex;
         def.indexBuffer = mesh->meshBuffers.indexBuffer.buffer;
+        def.material = &s.material->data;
         def.transform = nodeMatrix;
         def.vertexBufferAddress = mesh->meshBuffers.vertexBufferAddress;
 
@@ -1292,6 +1297,7 @@ void VulkanEngine::update_scene()
 {
     mainDrawContext.OpaqueSurfaces.clear();
     loadedNodes["Suzanne"]->Draw(glm::mat4{1.f}, mainDrawContext);
+    
 
     sceneData.view = glm::translate(glm::vec3{0, 0, -5});
     sceneData.proj =
@@ -1303,4 +1309,14 @@ void VulkanEngine::update_scene()
     sceneData.ambientCollor = glm::vec4(.1f);
     sceneData.sunlightColor = glm::vec4(1.f);
     sceneData.sunlightColor = glm::vec4(0, 1, 0.5f, 1.f);
+    for (int x = -3; x < 3; x++)
+    {
+
+        glm::mat4 scale = glm::scale(glm::vec3{0.2});
+        glm::mat4 translation = glm::translate(glm::vec3{x, 1, 0});
+
+        loadedNodes["Cube"]->Draw(translation * scale, mainDrawContext);
+    }
+
+
 }
