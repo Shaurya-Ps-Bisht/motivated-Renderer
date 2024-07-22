@@ -3,7 +3,9 @@
 #pragma once
 
 #include "SDL_render.h"
+#include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include "imgui.h"
 #include <array>
 #include <deque>
 #include <functional>
@@ -22,6 +24,39 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec4.hpp>
 #include <vulkan/vulkan_core.h>
+
+struct DrawContext;
+
+class IRenderable
+{
+    virtual void Draw(const glm::mat4 &topMatrix, DrawContext &ctx) = 0;
+};
+
+struct Node : public IRenderable
+{
+    std::weak_ptr<Node> parent;
+    std::vector<std::shared_ptr<Node>> children;
+
+    glm::mat4 localTransform;
+    glm::mat4 worldTransform;
+
+    void refershTransform(const glm::mat4 &parentMatrix)
+    {
+        worldTransform = parentMatrix * localTransform;
+        for (auto c : children)
+        {
+            c->refershTransform(worldTransform);
+        }
+    }
+
+    virtual void Draw(const glm::mat4 &topMatrix, DrawContext &ctx)
+    {
+        for (auto &c : children)
+        {
+            c->Draw(topMatrix, ctx);
+        }
+    }
+};
 
 enum class MaterialPass : uint8_t
 {

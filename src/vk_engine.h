@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "VkBootstrap.h"
+#include "glm/detail/qualifier.hpp"
 #include "imgui.h"
 #include "vk_loader.h"
 #include <cstdint>
@@ -11,6 +12,29 @@
 #include <vulkan/vulkan_core.h>
 
 constexpr unsigned int FRAME_OVERLAP = 2;
+
+struct MeshNode : public Node
+{
+    std::shared_ptr<MeshAsset> mesh;
+    virtual void Draw(const glm::mat4 &topMatrix, DrawContext &ctx) override;
+};
+
+struct RenderObject
+{
+    uint32_t indexCount;
+    uint32_t firstIndex;
+    VkBuffer indexBuffer;
+
+    MaterialInstance *material;
+
+    glm::mat4 transform;
+    VkDeviceAddress vertexBufferAddress;
+};
+
+struct DrawContext
+{
+    std::vector<RenderObject> OpaqueSurfaces;
+};
 
 struct GLTFMetallic_roughness
 {
@@ -99,9 +123,9 @@ struct GPUSceneData
     glm::mat4 view;
     glm::mat4 proj;
     glm::mat4 viewproj;
-    glm::mat4 ambientCollor;
-    glm::mat4 sunlightDirection;
-    glm::mat4 sunlightColor;
+    glm::vec4 ambientCollor;
+    glm::vec4 sunlightDirection;
+    glm::vec4 sunlightColor;
 };
 
 class VulkanEngine
@@ -138,7 +162,7 @@ class VulkanEngine
     std::vector<VkImageView> _swapchainImageViews;
     VkExtent2D _swapchainExtent;
 
-    DescriptorAllocator globalDescriptorAllocator;
+    DescriptorAllocatorGrowable globalDescriptorAllocator;
 
     VkDescriptorSet _drawImageDescriptors;
     VkDescriptorSetLayout _drawImageDescriptorLayout;
@@ -190,6 +214,7 @@ class VulkanEngine
     AllocatedImage create_image(void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage,
                                 bool mipmap = false);
     void destroy_image(const AllocatedImage &img);
+    void update_scene();
 
     GPUMeshBuffers rectangle;
 
@@ -225,4 +250,7 @@ class VulkanEngine
 
     MaterialInstance defaultData;
     GLTFMetallic_roughness metalRoughMaterial;
+
+    DrawContext mainDrawContext;
+    std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;
 };
