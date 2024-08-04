@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "VkBootstrap.h"
+#include "camera.h"
 #include "glm/detail/qualifier.hpp"
 #include "imgui.h"
 #include "vk_loader.h"
@@ -132,6 +133,7 @@ class VulkanEngine
 {
 
   public:
+    Camera mainCamera;
     FrameData _frames[FRAME_OVERLAP];
     FrameData &get_current_frame()
     {
