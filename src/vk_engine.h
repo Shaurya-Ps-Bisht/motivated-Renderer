@@ -133,6 +133,17 @@ class VulkanEngine
 {
 
   public:
+    std::unordered_map<std::string, std::shared_ptr<LoadedGLTF>> loadedScenes;
+    AllocatedImage _errorCheckerBoardImage;
+    AllocatedImage _whiteImage;
+    AllocatedImage _blackImage;
+    AllocatedImage _greyImage;
+    MaterialInstance defaultData;
+    GLTFMetallic_roughness metalRoughMaterial;
+
+    VkSampler _defaultSamplerLinear;
+    VkSampler _defaultSamplerNearest;
+
     Camera mainCamera;
     FrameData _frames[FRAME_OVERLAP];
     FrameData &get_current_frame()
@@ -187,6 +198,7 @@ class VulkanEngine
 
     void immediate_submit(std::function<void(VkCommandBuffer cmd)> &&function);
     GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+    AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
   private:
     void init_vulkan();
@@ -209,7 +221,6 @@ class VulkanEngine
     void init_mesh_pipeline();
     void draw_geometry(VkCommandBuffer cmd);
 
-    AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
     void destroy_buffer(const AllocatedBuffer &buffer);
 
     AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
@@ -240,18 +251,7 @@ class VulkanEngine
 
     GPUSceneData sceneData;
 
-    AllocatedImage _whiteImage;
-    AllocatedImage _blackImage;
-    AllocatedImage _greyImage;
-    AllocatedImage _errorCheckerBoardImage;
-
-    VkSampler _defaultSamplerLinear;
-    VkSampler _defaultSamplerNearest;
-
     VkDescriptorSetLayout _singleImageDescriptorLayout;
-
-    MaterialInstance defaultData;
-    GLTFMetallic_roughness metalRoughMaterial;
 
     DrawContext mainDrawContext;
     std::unordered_map<std::string, std::shared_ptr<Node>> loadedNodes;

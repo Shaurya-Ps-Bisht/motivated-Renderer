@@ -27,6 +27,7 @@
 #include <ranges>
 // #include <unistd.h>
 #include <vk_initializers.h>
+#include <vk_loader.h>
 #include <vk_pipelines.h>
 #include <vk_types.h>
 #include <vulkan/vulkan_core.h>
@@ -70,10 +71,16 @@ void VulkanEngine::init()
     init_default_data();
 
     mainCamera.velocity = glm::vec3(0.f);
-    mainCamera.position = glm::vec3(0, 0, 5);
+    mainCamera.position = glm::vec3(30.f, 0, -085.f);
 
     mainCamera.pitch = 0;
     mainCamera.yaw = 0;
+
+    std::string structurePath = {"../../assets/structure.glb"};
+    auto structureFile = loadGltf(this, structurePath);
+    assert(structureFile.has_value());
+
+    loadedScenes["structure"] = *structureFile;
     // everything went fine
     _isInitialized = true;
 }
@@ -83,6 +90,8 @@ void VulkanEngine::cleanup()
     if (_isInitialized)
     {
         vkDeviceWaitIdle(_device);
+
+        loadedScenes.clear();
 
         for (int i = 0; i < FRAME_OVERLAP; i++)
         {
@@ -1314,6 +1323,7 @@ void VulkanEngine::update_scene()
     mainDrawContext.OpaqueSurfaces.clear();
     loadedNodes["Suzanne"]->Draw(glm::mat4{1.f}, mainDrawContext);
 
+    loadedScenes["structure"]->Draw(glm::mat4{1.f}, mainDrawContext);
     // sceneData.view = glm::translate(glm::vec3{0, 0, -5});
     // sceneData.proj =
     //     glm::perspective(glm::radians(70.0f), (float)_windowExtent.width / (float)_windowExtent.height, 10000.f,
