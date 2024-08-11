@@ -35,6 +35,7 @@ struct RenderObject
 struct DrawContext
 {
     std::vector<RenderObject> OpaqueSurfaces;
+    std::vector<RenderObject> TransparentSurfaces;
 };
 
 struct GLTFMetallic_roughness
@@ -195,10 +196,15 @@ class VulkanEngine
     void cleanup();
     void draw();
     void run();
+    void destroy_buffer(const AllocatedBuffer &buffer);
+    void destroy_image(const AllocatedImage &img);
 
     void immediate_submit(std::function<void(VkCommandBuffer cmd)> &&function);
     GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+    AllocatedImage create_image(void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage,
+                                bool mipmap = false);
 
   private:
     void init_vulkan();
@@ -221,12 +227,6 @@ class VulkanEngine
     void init_mesh_pipeline();
     void draw_geometry(VkCommandBuffer cmd);
 
-    void destroy_buffer(const AllocatedBuffer &buffer);
-
-    AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
-    AllocatedImage create_image(void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage,
-                                bool mipmap = false);
-    void destroy_image(const AllocatedImage &img);
     void update_scene();
 
     GPUMeshBuffers rectangle;
