@@ -27,7 +27,7 @@ struct RenderObject
     VkBuffer indexBuffer;
 
     MaterialInstance *material;
-
+    Bounds bounds;
     glm::mat4 transform;
     VkDeviceAddress vertexBufferAddress;
 };
@@ -130,6 +130,15 @@ struct GPUSceneData
     glm::vec4 sunlightColor;
 };
 
+struct EngineStats
+{
+    float frametTime;
+    int triangleCount;
+    int drawcallCount;
+    float sceneUpdatetime;
+    float meshDrawtime;
+};
+
 class VulkanEngine
 {
 
@@ -198,8 +207,8 @@ class VulkanEngine
     void run();
     void destroy_buffer(const AllocatedBuffer &buffer);
     void destroy_image(const AllocatedImage &img);
-
     void immediate_submit(std::function<void(VkCommandBuffer cmd)> &&function);
+    bool is_visible(const RenderObject &obj, const glm::mat4 &viewproj);
     GPUMeshBuffers uploadMesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
     AllocatedBuffer create_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
     AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
@@ -229,6 +238,7 @@ class VulkanEngine
 
     void update_scene();
 
+    EngineStats stats;
     GPUMeshBuffers rectangle;
 
     DeletionQueue _mainDeletionQueue;
